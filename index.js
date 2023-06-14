@@ -16,7 +16,7 @@ app.use(cookieParser())
 
 
 
-//connect mongo database
+//connect mongo database123
 mongoose.connect("mongodb+srv://123:123@6003.tdqfq6v.mongodb.net/6003?retryWrites=true&w=majority")
   .then(console.log("Connected"))
   .catch(err=>console.log(err))
