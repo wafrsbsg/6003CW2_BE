@@ -6,6 +6,8 @@ const UserModel = require('./models/UserModel')
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const cookieParser = require('cookie-parser')
+const CatModel = require('./models/CatModel')
+const multer = require('multer')
   
 const app = express()
 const secret = "123"
@@ -71,6 +73,28 @@ app.get('/data', (req,res) =>{
 //logout by clear token
 app.post('/logout', (req,res) => {
   res.cookie('token', '').json('ok')
+});
+
+//get cat
+app.get('/showCat', async (req,res) =>{
+   const cat = await CatModel.find()
+  res.send(cat)
+})
+
+//save cat
+app.post('/saveCat', async (req,res) => {
+  const {catName,describe,imageurl} = req.body;
+  try{
+    const catM = await CatModel.create({
+      catName,
+      describe,
+      imageurl,
+    });
+    res.json(catM);
+  } catch(e) {
+    console.log(e);
+    res.json(e);
+  }
 });
 
 app.listen(5000, ()=> {
