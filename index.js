@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 require("dotenv").config()
 const cors = require('cors')
 const UserModel = require('./models/UserModel')
+const StaffModel = require('./models/StaffModel')
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const cookieParser = require('cookie-parser')
@@ -61,6 +62,44 @@ app.post('/login', async (req,res) => {
   }
 });
 
+//staff egister, use salt to hash
+app.post('/staffRegister', async (req,res) => {
+  const {email,password,name} = req.body;
+  try{
+    const salt = await bcrypt.genSalt(10);
+    const hashedPass = await bcrypt.hashSync(req.body.password, salt);
+    const staffM = await StaffModel.create({
+      email,
+      name,
+      password:hashedPass,
+    });
+    res.json(staffM);
+  } catch(e) {
+    console.log(e);
+    console.log(password);
+    res.json(e);
+  }
+});
+
+//staff login, save cookie
+app.post('/staffLogin', async (req,res) => {
+  const {email,password} = req.body;
+  const staffM = await StaffModel.findOne({email});
+  const checkPass = bcrypt.compareSync(password, staffM.password);
+  if (checkPass) {
+    // logged in
+    jwt.sign({email,id:staffM._id}, secret, {}, (err,token) => {
+      if (err) throw err;
+      res.cookie('token', token).json({
+        id:staffM._id,
+        email,
+      });
+    });
+  } else {
+    res.status(400).json('wrong credentials');
+  }
+});
+
 //check login(cookie)
 app.get('/data', (req,res) =>{
    const {token} = req.cookies
@@ -81,7 +120,7 @@ app.get('/showCat', async (req,res) =>{
   res.send(cat)
 })
 
-//save cat
+//save cat(for staff)
 app.post('/saveCat', async (req,res) => {
   const {catName,describe,imageurl} = req.body;
   try{
@@ -96,6 +135,20 @@ app.post('/saveCat', async (req,res) => {
     res.json(e);
   }
 });
+
+//delete cat(for staff)
+app.delete('/deleteCat/:id', async (req, res) => {
+  console.log(req.params.id)
+  CatModel.deleteOne({_id:req.params.id})
+    .then(() => res.send("success"))
+    .catch((err) => {
+      console.log(err);
+      res.send({ error: err, msg: "wrong" });
+    })
+})
+
+
+
 
 app.listen(5000, ()=> {
     console.log("Running");
