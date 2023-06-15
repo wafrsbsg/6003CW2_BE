@@ -9,6 +9,7 @@ const jwt = require("jsonwebtoken")
 const cookieParser = require('cookie-parser')
 const CatModel = require('./models/CatModel')
 const multer = require('multer')
+const LikeModel = require('./models/LikeModel')
   
 const app = express()
 const secret = "123"
@@ -87,7 +88,6 @@ app.post('/staffLogin', async (req,res) => {
   const staffM = await StaffModel.findOne({email});
   const checkPass = bcrypt.compareSync(password, staffM.password);
   if (checkPass) {
-    // logged in
     jwt.sign({email,id:staffM._id}, secret, {}, (err,token) => {
       if (err) throw err;
       res.cookie('token', token).json({
@@ -147,8 +147,44 @@ app.delete('/deleteCat/:id', async (req, res) => {
     })
 })
 
+//like cat(for public)
+app.post('/likeCat', async (req,res) => {
+  const {userEmail,catName,describe,imageurl} = req.body;
+  try{
+    const likeM = await LikeModel.create({
+      userEmail,
+      catName,
+      describe,
+      imageurl,
+    });
+    res.json(likeM);
+  } catch(e) {
+    console.log(e);
+    res.json(e);
+  }
+});
 
 
+
+//get like cat based on current user email(for public)
+app.all('/showLikeCat/:userEmail', async (req,res) =>{
+  const {userEmail} = req.params
+  const like = await LikeModel.find({userEmail})
+  console.log({userEmail})
+  res.send(like)
+  console.log(like)
+})
+
+//delete like cat(for public)
+app.delete('/deleteLikeCat/:id', async (req, res) => {
+  console.log(req.params.id)
+  LikeModel.deleteOne({_id:req.params.id})
+    .then(() => res.send("success"))
+    .catch((err) => {
+      console.log(err);
+      res.send({ error: err, msg: "wrong" });
+    })
+})
 
 app.listen(5000, ()=> {
     console.log("Running");
