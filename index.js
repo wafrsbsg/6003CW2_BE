@@ -147,6 +147,23 @@ app.delete('/deleteCat/:id', async (req, res) => {
     })
 })
 
+//update cat(for staff)
+app.put('/updateCat/:id', async (req, res) => {
+  const{catName,describe,imageurl} = req.body
+  console.log(req.params.id)
+try{
+    const catM = await CatModel.updateOne({_id:req.params.id},{catName,describe,imageurl})
+    res.json(catM);
+  } catch(e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+  
+  
+
+
+
 //like cat(for public)
 app.post('/likeCat', async (req,res) => {
   const {userEmail,catName,describe,imageurl} = req.body;
@@ -185,6 +202,7 @@ app.delete('/deleteLikeCat/:id', async (req, res) => {
       res.send({ error: err, msg: "wrong" });
     })
 })
+
 
 app.listen(5000, ()=> {
     console.log("Running");
