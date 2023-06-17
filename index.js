@@ -10,13 +10,19 @@ const cookieParser = require('cookie-parser')
 const CatModel = require('./models/CatModel')
 const multer = require('multer')
 const LikeModel = require('./models/LikeModel')
+const path = require('path')
   
 const app = express()
 const secret = "123"
 
+
+
 app.use(express.json())
 app.use(cors({credentials:true,origin:'https://6003fe.darwelldavid.repl.co'}))
 app.use(cookieParser())
+
+
+app.use(express.static('public'))
 
 
 
@@ -63,7 +69,7 @@ app.post('/login', async (req,res) => {
   }
 });
 
-//staff egister, use salt to hash
+//staff register, use salt to hash
 app.post('/staffRegister', async (req,res) => {
   const {email,password,name} = req.body;
   try{
@@ -120,15 +126,34 @@ app.get('/showCat', async (req,res) =>{
   res.send(cat)
 })
 
-//save cat(for staff)
-app.post('/saveCat', async (req,res) => {
-  const {catName,describe,imageurl} = req.body;
+//use multer for upload, and define the storage location and file name of uploaded images
+const storage = multer.diskStorage({
+  destination: (req, imageurl, cb) => {
+    cb(null,'public/images')
+  },
+  filename:(req, imageurl, cb) => {
+  //console.log(file)
+  cb(null, imageurl.fieldname + "_" + Date.now() + path.extname(imageurl.originalname))
+  }
+})
+const upload = multer({storage:storage})
+
+//save cat(for staff), get catName and describe as parameters, and get file as request. Then upload image to server and insert data to database
+app.post('/saveCat:catName/:describe',upload.single('file'), async (req,res) => {
+  console.log(req.file)
+  console.log(req.file.filename)
+  console.log(req.params.catName)
+  console.log(req.params.describe)
+  //const {catName,describe,imageurl} = req.body;
+  //console.log(req.body.imageurl)
+  //console.log(req.body.catName)
   try{
     const catM = await CatModel.create({
-      catName,
-      describe,
-      imageurl,
+      catName: req.params.catName,
+      describe: req.params.describe,
+      imageurl: req.file.filename,
     });
+    console.log(catM)
     res.json(catM);
   } catch(e) {
     console.log(e);
@@ -136,7 +161,11 @@ app.post('/saveCat', async (req,res) => {
   }
 });
 
-//delete cat(for staff)
+app.post('/upload',upload.single('file'), async (req, res) => {
+  console.log(req.file)
+})
+
+//delete cat by id(for staff)
 app.delete('/deleteCat/:id', async (req, res) => {
   console.log(req.params.id)
   CatModel.deleteOne({_id:req.params.id})
@@ -147,12 +176,12 @@ app.delete('/deleteCat/:id', async (req, res) => {
     })
 })
 
-//update cat(for staff)
-app.put('/updateCat/:id', async (req, res) => {
+//update cat by id(for staff), upload new image like save cat
+app.put('/updateCat/:id/:catName/:describe',upload.single('file'), async (req, res) => {
   const{catName,describe,imageurl} = req.body
   console.log(req.params.id)
 try{
-    const catM = await CatModel.updateOne({_id:req.params.id},{catName,describe,imageurl})
+    const catM = await CatModel.updateOne({_id:req.params.id},{catName,describe,imageurl: req.file.filename})
     res.json(catM);
   } catch(e) {
     console.log(e);
