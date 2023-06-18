@@ -11,6 +11,7 @@ const CatModel = require('./models/CatModel')
 const multer = require('multer')
 const LikeModel = require('./models/LikeModel')
 const path = require('path')
+const MessageModel = require('./models/MessageModel')
   
 const app = express()
 const secret = "123"
@@ -188,10 +189,6 @@ try{
     res.json(e);
   }
 });
-  
-  
-
-
 
 //like cat(for public)
 app.post('/likeCat', async (req,res) => {
@@ -225,6 +222,64 @@ app.all('/showLikeCat/:userEmail', async (req,res) =>{
 app.delete('/deleteLikeCat/:id', async (req, res) => {
   console.log(req.params.id)
   LikeModel.deleteOne({_id:req.params.id})
+    .then(() => res.send("success"))
+    .catch((err) => {
+      console.log(err);
+      res.send({ error: err, msg: "wrong" });
+    })
+})
+
+//send message
+app.post('/sendMessage', async (req,res) => {
+  const {senderEmail,message} = req.body;
+  try{
+    const MessageM = await MessageModel.create({
+      senderEmail,
+      message,
+      saveEmail:req.body.senderEmail,
+    });
+    res.json(MessageM);
+  } catch(e) {
+    console.log(e);
+    res.json(e);
+  }
+});
+
+//get message based on current user email(for public)
+app.get('/showMessage/:saveEmail', async (req,res) =>{
+  const {saveEmail} = req.params
+  const MessageM = await MessageModel.find({saveEmail})
+  console.log({saveEmail})
+  res.send(MessageM)
+  console.log(MessageM)
+})
+
+//get all message(for staff)
+app.get('/showMessageS', async (req,res) =>{
+   const MessageM = await MessageModel.find()
+  res.send(MessageM)
+})
+
+//send message(for staff)
+app.post('/sendMessageS', async (req,res) => {
+  const {senderEmail,message,saveEmail} = req.body;
+  try{
+    const MessageM = await MessageModel.create({
+      senderEmail,
+      message,
+      saveEmail,
+    });
+    res.json(MessageM);
+  } catch(e) {
+    console.log(e);
+    res.json(e);
+  }
+})
+
+//delete message by id(for staff)
+app.delete('/deleteMessage/:id', async (req, res) => {
+  console.log(req.params.id)
+  MessageModel.deleteOne({_id:req.params.id})
     .then(() => res.send("success"))
     .catch((err) => {
       console.log(err);
