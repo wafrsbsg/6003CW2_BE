@@ -36,10 +36,10 @@ mongoose.connect("mongodb+srv://123:123@6003.tdqfq6v.mongodb.net/6003?retryWrite
 
 //register, use salt to hash
 app.post('/register', async (req,res) => {
-  const {email,password,name} = req.body;
+  const {email,password,name} = req.body
   try{
-    const salt = await bcrypt.genSalt(10);
-    const hashedPass = await bcrypt.hashSync(req.body.password, salt);
+    const salt = await bcrypt.genSalt(10)
+    const hashedPass = await bcrypt.hashSync(req.body.password, salt)
 const emailTaken = await UserModel.findOne({ email })
     if (emailTaken) {
       return res.status(400).json({ err: 'email has been used' })
@@ -48,15 +48,15 @@ const emailTaken = await UserModel.findOne({ email })
       email,
       name,
       password:hashedPass,
-    });
-    res.json(userM);
+    })
+    res.json(userM)
     }
   } catch(e) {
-    console.log(e);
-    console.log(password);
-    res.json(e);
+    console.log(e)
+    console.log(password)
+    res.json(e)
   }
-});
+})
 
 //login, save cookie
 app.post('/login', async (req,res) => {
@@ -87,7 +87,7 @@ const checkPass = bcrypt.compareSync(password, userM.password)
 
 //staff register, use salt to hash
 app.post('/staffRegister', async (req,res) => {
-  const {email,password,name,registerCode} = req.body;
+  const {email,password,name,registerCode} = req.body
 const codeM = await CodeModel.findOne({registerCode})
 
 if(!codeM){
@@ -95,8 +95,8 @@ return res.status(400).json({ err: 'code is worng' })
 } else if (registerCode == codeM.registerCode) {
 
   try{
-    const salt = await bcrypt.genSalt(10);
-    const hashedPass = await bcrypt.hashSync(req.body.password, salt);
+    const salt = await bcrypt.genSalt(10)
+    const hashedPass = await bcrypt.hashSync(req.body.password, salt)
     const emailTaken = await StaffModel.findOne({ email })
     if (emailTaken) {
       return res.status(400).json({ err: 'email has been used' })
@@ -106,16 +106,16 @@ return res.status(400).json({ err: 'code is worng' })
       name,
       password:hashedPass,
     })
-    res.json(staffM);
+    res.json(staffM)
     }
   } catch(e) {
-    console.log(e);
-    console.log(password);
-    res.json(e);
+    console.log(e)
+    console.log(password)
+    res.json(e)
   }
 }
 
-});
+})
 
 //staff login, save cookie
 app.post('/staffLogin', async (req,res) => {
@@ -135,7 +135,7 @@ return res.status(400).json({ err: 'email is worng' })
       })
     })
   } else {
-    res.status(400).json('email or password is worng');
+    res.status(400).json('email or password is worng')
   }
 }
 
@@ -153,7 +153,7 @@ app.get('/data', (req,res) =>{
 //logout by clear token
 app.post('/logout', (req,res) => {
   res.cookie('token', '').json('ok')
-});
+})
 
 //get cat
 app.get('/showCat', async (req,res) =>{
@@ -179,7 +179,7 @@ app.post('/saveCat:catName/:describe',upload.single('file'), async (req,res) => 
   console.log(req.file.filename)
   console.log(req.params.catName)
   console.log(req.params.describe)
-  //const {catName,describe,imageurl} = req.body;
+  //const {catName,describe,imageurl} = req.body
   //console.log(req.body.imageurl)
   //console.log(req.body.catName)
   try{
@@ -187,14 +187,14 @@ app.post('/saveCat:catName/:describe',upload.single('file'), async (req,res) => 
       catName: req.params.catName,
       describe: req.params.describe,
       imageurl: req.file.filename,
-    });
+    })
     console.log(catM)
-    res.json(catM);
+    res.json(catM)
   } catch(e) {
-    console.log(e);
-    res.json(e);
+    console.log(e)
+    res.json(e)
   }
-});
+})
 
 app.post('/upload',upload.single('file'), async (req, res) => {
   console.log(req.file)
@@ -206,8 +206,8 @@ app.delete('/deleteCat/:id', async (req, res) => {
   CatModel.deleteOne({_id:req.params.id})
     .then(() => res.send("success"))
     .catch((err) => {
-      console.log(err);
-      res.send({ error: err, msg: "wrong" });
+      console.log(err)
+      res.send({ error: err, msg: "wrong" })
     })
 })
 
@@ -217,16 +217,16 @@ app.put('/updateCat/:id/:catName/:describe',upload.single('file'), async (req, r
   console.log(req.params.id)
 try{
     const catM = await CatModel.updateOne({_id:req.params.id},{catName:req.params.catName,describe:req.params.describe,imageurl: req.file.filename})
-    res.json(catM);
+    res.json(catM)
   } catch(e) {
-    console.log(e);
-    res.json(e);
+    console.log(e)
+    res.json(e)
   }
-});
+})
 
 //like cat(for public)
 app.post('/likeCat', async (req,res) => {
-  const {userEmail,catName,describe,imageurl} = req.body;
+  const {userEmail,catName,describe,imageurl} = req.body
   try{
 const catTaken = await LikeModel.findOne({ catName })
     if (catTaken) {
@@ -238,15 +238,15 @@ const catTaken = await LikeModel.findOne({ catName })
       catName,
       describe,
       imageurl,
-    });
-    res.json(likeM);
+    })
+    res.json(likeM)
     }
 
   } catch(e) {
-    console.log(e);
-    res.json(e);
+    console.log(e)
+    res.json(e)
   }
-});
+})
 
 
 
@@ -265,26 +265,26 @@ app.delete('/deleteLikeCat/:id', async (req, res) => {
   LikeModel.deleteOne({_id:req.params.id})
     .then(() => res.send("success"))
     .catch((err) => {
-      console.log(err);
-      res.send({ error: err, msg: "wrong" });
+      console.log(err)
+      res.send({ error: err, msg: "wrong" })
     })
 })
 
 //send message
 app.post('/sendMessage', async (req,res) => {
-  const {senderEmail,message} = req.body;
+  const {senderEmail,message} = req.body
   try{
     const MessageM = await MessageModel.create({
       senderEmail,
       message,
       saveEmail:req.body.senderEmail,
-    });
-    res.json(MessageM);
+    })
+    res.json(MessageM)
   } catch(e) {
-    console.log(e);
-    res.json(e);
+    console.log(e)
+    res.json(e)
   }
-});
+})
 
 //get message based on current user email(for public)
 app.get('/showMessage/:saveEmail', async (req,res) =>{
@@ -303,17 +303,17 @@ app.get('/showMessageS', async (req,res) =>{
 
 //send message(for staff)
 app.post('/sendMessageS', async (req,res) => {
-  const {senderEmail,message,saveEmail} = req.body;
+  const {senderEmail,message,saveEmail} = req.body
   try{
     const MessageM = await MessageModel.create({
       senderEmail,
       message,
       saveEmail,
-    });
-    res.json(MessageM);
+    })
+    res.json(MessageM)
   } catch(e) {
-    console.log(e);
-    res.json(e);
+    console.log(e)
+    res.json(e)
   }
 })
 
@@ -323,12 +323,12 @@ app.delete('/deleteMessage/:id', async (req, res) => {
   MessageModel.deleteOne({_id:req.params.id})
     .then(() => res.send("success"))
     .catch((err) => {
-      console.log(err);
-      res.send({ error: err, msg: "wrong" });
+      console.log(err)
+      res.send({ error: err, msg: "wrong" })
     })
 })
 
 
 app.listen(5000, ()=> {
-    console.log("Running");
+    console.log("Running")
 })
