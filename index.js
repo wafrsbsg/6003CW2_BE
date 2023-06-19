@@ -228,8 +228,8 @@ try{
 app.post('/likeCat', async (req,res) => {
   const {userEmail,catName,describe,imageurl} = req.body
   try{
-const catTaken = await LikeModel.findOne({ catName })
-    if (catTaken) {
+const catTaken = await LikeModel.find({ userEmail })
+    if (catTaken.catName == catName) {
       return res.status(400).json({ err: 'cat has been liked' })
     } else{
 
