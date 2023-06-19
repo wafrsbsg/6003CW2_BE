@@ -12,6 +12,8 @@ const multer = require('multer')
 const LikeModel = require('./models/LikeModel')
 const path = require('path')
 const MessageModel = require('./models/MessageModel')
+const CodeModel = require('./models/CodeModel')
+
   
 const app = express()
 const secret = "123"
@@ -38,12 +40,17 @@ app.post('/register', async (req,res) => {
   try{
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hashSync(req.body.password, salt);
+const emailTaken = await UserModel.findOne({ email })
+    if (emailTaken) {
+      return res.status(400).json({ err: 'email has been used' })
+    } else{
     const userM = await UserModel.create({
       email,
       name,
       password:hashedPass,
     });
     res.json(userM);
+    }
   } catch(e) {
     console.log(e);
     console.log(password);
@@ -53,59 +60,86 @@ app.post('/register', async (req,res) => {
 
 //login, save cookie
 app.post('/login', async (req,res) => {
-  const {email,password} = req.body;
-  const userM = await UserModel.findOne({email});
-  const checkPass = bcrypt.compareSync(password, userM.password);
+  const {email,password} = req.body
+  const userM = await UserModel.findOne({email})
+    if (!userM) {
+
+
+      return res.status(400).json({ err: 'email is worng' })
+    } else{
+const checkPass = bcrypt.compareSync(password, userM.password)
+
   if (checkPass) {
     // logged in
     jwt.sign({email,id:userM._id}, secret, {}, (err,token) => {
-      if (err) throw err;
+      if (err) throw err
       res.cookie('token', token).json({
         id:userM._id,
         email,
-      });
-    });
+      })
+    })
   } else {
-    res.status(400).json('wrong credentials');
+    res.status(400).json('email or password is worng')
   }
-});
+    }
+
+})
 
 //staff register, use salt to hash
 app.post('/staffRegister', async (req,res) => {
-  const {email,password,name} = req.body;
+  const {email,password,name,registerCode} = req.body;
+const codeM = await CodeModel.findOne({registerCode})
+
+if(!codeM){
+return res.status(400).json({ err: 'code is worng' })
+} else if (registerCode == codeM.registerCode) {
+
   try{
     const salt = await bcrypt.genSalt(10);
     const hashedPass = await bcrypt.hashSync(req.body.password, salt);
+    const emailTaken = await StaffModel.findOne({ email })
+    if (emailTaken) {
+      return res.status(400).json({ err: 'email has been used' })
+    } else{
     const staffM = await StaffModel.create({
       email,
       name,
       password:hashedPass,
-    });
+    })
     res.json(staffM);
+    }
   } catch(e) {
     console.log(e);
     console.log(password);
     res.json(e);
   }
+}
+
 });
 
 //staff login, save cookie
 app.post('/staffLogin', async (req,res) => {
-  const {email,password} = req.body;
-  const staffM = await StaffModel.findOne({email});
-  const checkPass = bcrypt.compareSync(password, staffM.password);
+  const {email,password} = req.body
+  const staffM = await StaffModel.findOne({email})
+
+if(!staffM){
+return res.status(400).json({ err: 'email is worng' })
+    } else{
+  const checkPass = bcrypt.compareSync(password, staffM.password)
   if (checkPass) {
     jwt.sign({email,id:staffM._id}, secret, {}, (err,token) => {
-      if (err) throw err;
+      if (err) throw err
       res.cookie('token', token).json({
         id:staffM._id,
         email,
-      });
-    });
+      })
+    })
   } else {
-    res.status(400).json('wrong credentials');
+    res.status(400).json('email or password is worng');
   }
-});
+}
+
+})
 
 //check login(cookie)
 app.get('/data', (req,res) =>{
@@ -182,7 +216,7 @@ app.put('/updateCat/:id/:catName/:describe',upload.single('file'), async (req, r
   const{catName,describe,imageurl} = req.body
   console.log(req.params.id)
 try{
-    const catM = await CatModel.updateOne({_id:req.params.id},{catName,describe,imageurl: req.file.filename})
+    const catM = await CatModel.updateOne({_id:req.params.id},{catName:req.params.catName,describe:req.params.describe,imageurl: req.file.filename})
     res.json(catM);
   } catch(e) {
     console.log(e);
@@ -194,6 +228,11 @@ try{
 app.post('/likeCat', async (req,res) => {
   const {userEmail,catName,describe,imageurl} = req.body;
   try{
+const catTaken = await LikeModel.findOne({ catName })
+    if (catTaken) {
+      return res.status(400).json({ err: 'cat has been liked' })
+    } else{
+
     const likeM = await LikeModel.create({
       userEmail,
       catName,
@@ -201,6 +240,8 @@ app.post('/likeCat', async (req,res) => {
       imageurl,
     });
     res.json(likeM);
+    }
+
   } catch(e) {
     console.log(e);
     res.json(e);
