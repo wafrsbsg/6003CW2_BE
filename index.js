@@ -21,9 +21,16 @@ const secret = "123"
 
 
 app.use(express.json())
-app.use(cors({credentials:true,origin:'https://6003fe.darwelldavid.repl.co'}))
+//app.use(cors({credentials:true,origin:'https://e1e039f4-bb5f-41f0-9f76-11b6aad2aba6-00-2684sxvwh9ivg.kirk.replit.dev'}))
 app.use(cookieParser())
 
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', 'https://e1e039f4-bb5f-41f0-9f76-11b6aad2aba6-00-2684sxvwh9ivg.kirk.replit.dev');
+    res.setHeader('Access-Control-Allow-Methods', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+});
 
 app.use(express.static('public'))
 
